@@ -158,46 +158,7 @@ function parseColor(color): number[] {
     return pcolor;
 }
 
-function interpColor(colors, steps = 2, endPoints = true, interpFunc = lerp) {
-    colors = colors.map(function (color) {
-        return parseColor(color);
-    });
-
-    const interpColor = function (t: number, color1, color2) {
-        return new Array(color1.length).fill(0).map(function (_, index) {
-            const value = interpFunc(t, color1[index], color2[index]);
-
-            if (index < 3) {
-                return clamp(Math.ceil(value), 0, 255);
-            } else {
-                return clamp(value, 0, 1);
-            }
-        });
-    };
-
-    let interpSection = function (color1, color2) {
-        let section = [];
-        for (let t = 0; t <= 1; t += 1 / steps) {
-            let [r, g, b, a] = interpColor(t, color1, color2);
-            let colorString = `rgba(${r}, ${g}, ${b}, ${a})`;
-            let colorObj = new Color(colorString);
-            section.push(colorObj.hex);
-        }
-        return section;
-    };
-
-    let sections = colors.map(function (_, index) {
-        if (index < colors.length - 1) {
-            return interpSection(colors[index], colors[index + 1]);
-        } else {
-            return [];
-        }
-    });
-
-    return [].concat.apply([], sections);
-}
-
-class Color {
+export class Color {
     _colorString: string;
     _rgba: number[];
     _hsla: number[];
@@ -303,4 +264,43 @@ class Color {
         this._hsla[3] = opacity;
         this.hsla = this._hsla;
     }
+}
+
+function interpColor(colors, steps = 2, endPoints = true, interpFunc = lerp) {
+    colors = colors.map(function (color) {
+        return parseColor(color);
+    });
+
+    const interpColor = function (t: number, color1, color2) {
+        return new Array(color1.length).fill(0).map(function (_, index) {
+            const value = interpFunc(t, color1[index], color2[index]);
+
+            if (index < 3) {
+                return clamp(Math.ceil(value), 0, 255);
+            } else {
+                return clamp(value, 0, 1);
+            }
+        });
+    };
+
+    let interpSection = function (color1, color2) {
+        let section = [];
+        for (let t = 0; t <= 1; t += 1 / steps) {
+            let [r, g, b, a] = interpColor(t, color1, color2);
+            let colorString = `rgba(${r}, ${g}, ${b}, ${a})`;
+            let colorObj = new Color(colorString);
+            section.push(colorObj.hex);
+        }
+        return section;
+    };
+
+    let sections = colors.map(function (_, index) {
+        if (index < colors.length - 1) {
+            return interpSection(colors[index], colors[index + 1]);
+        } else {
+            return [];
+        }
+    });
+
+    return [].concat.apply([], sections);
 }

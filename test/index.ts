@@ -1,11 +1,12 @@
-import { smoothAnimate } from "../src/animation";
+import { Color } from "../src/colors";
 
-import { easeInOutCubic } from "../src/math";
+const red = new Color("red");
 
-const d = document.createElement("div");
+const redHex = red.hex;
+red.lightness *= 1.5;
 
-const transformFunc = (v, t): any => {
-    d.style.opacity = v;
-};
+const blue = new Color("rgb(0, 0, 255)");
+const blueHSLA = blue.hsla;
 
-smoothAnimate(0, 100, 1000, transformFunc, easeInOutCubic);
+const green = new Color("#FF0000");
+green.opacity = 0.5;
