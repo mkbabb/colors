@@ -1,4 +1,4 @@
-export function clamp(x: number, lowerLimit: number, upperLimit: number): number {
+export function clamp(x: number, lowerLimit = 0, upperLimit = 1): number {
     if (x < lowerLimit) {
         return lowerLimit;
     } else if (x > upperLimit) {

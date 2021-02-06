@@ -1,60 +1,36 @@
 import { clamp, lerp } from "./math";
 
-export function toBase(num, base) {
-    let digits = [];
+function addAlpha(color: number[]): number[] {
+    color = color.slice();
 
-    while (num !== 0) {
-        num = (num / base) >> 0;
-        digits.push(num % base);
-    }
-
-    if (base === 10) {
-        let based = 0;
-        digits.forEach((value, index) => {
-            based += value * Math.pow(10, index);
-        });
-        return based;
+    if (color.length == 3) {
+        return color.concat(1);
     } else {
-        let based = "";
-        digits.reverse().forEach((value, index) => {
-            based += value;
-        });
-        return based;
+        return color;
     }
 }
 
-export function hexToRGBA(num, alpha = 1) {
-    let rgbInt = parseInt(num, 16);
+function hexToRGBA(hex: number, alpha = 1): number[] {
+    let rgbInt = parseInt(String(hex), 16);
     let r = (rgbInt >> 16) & 255;
     let g = (rgbInt >> 8) & 255;
     let b = rgbInt & 255;
     return [r, g, b, alpha];
 }
 
-export function RGBAToHex(color) {
-    let r, g, b, a;
-    if (color.length == 3) {
-        [r, g, b] = color;
-    } else {
-        [r, g, b, a] = color;
-    }
-
+function RGBAToHex(color: number[]): string {
+    const [r, g, b, a] = addAlpha(color);
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
-export function HSLAToRGBA(color) {
-    let h, s, l, a;
-    if (color.length == 3) {
-        [h, s, l] = color;
-    } else {
-        [h, s, l, a] = color;
-    }
-    var r, g, b;
+function HSLAToRGBA(color: number[]) {
+    const [h, s, l, a] = addAlpha(color);
+    let r, g, b;
 
     if (s == 0) {
         r = g = b = l; // achromatic
     } else {
-        var hue2rgb = function hue2rgb(p, q, t) {
+        const hue2rgb = function hue2rgb(p, q, t) {
             if (t < 0) t += 1;
             if (t > 1) t -= 1;
             if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -73,21 +49,15 @@ export function HSLAToRGBA(color) {
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), a || 0];
 }
 
-export function RGBAToHSLA(color) {
-    let r, g, b, a;
-    if (color.length == 3) {
-        [r, g, b] = color;
-    } else {
-        [r, g, b, a] = color;
-    }
+function RGBAToHSLA(color: number[]) {
+    const [r, g, b, a] = addAlpha(color);
 
-    (r /= 255), (g /= 255), (b /= 255);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
 
-    var max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
-    var h,
-        s,
-        l = (max + min) / 2;
+    let h;
+    let s;
+    let l = (max + min) / 2;
 
     if (max == min) {
         h = s = 0; // achromatic
@@ -111,21 +81,24 @@ export function RGBAToHSLA(color) {
     return [h, s, l, a];
 }
 
-export function colorToRGBA(color) {
+function colorToRGBA(color) {
     let canvas = document.createElement("canvas");
     canvas.height = 1;
     canvas.width = 1;
+
     let ctx = canvas.getContext("2d");
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
+
     return Array.from(ctx.getImageData(0, 0, 1, 1).data);
 }
 
-export function RGBAToString(color) {
+function RGBAToString(color: number[]) {
+    color = addAlpha(color);
     return ` rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]}) `;
 }
 
-export function parseColor(color) {
+function parseColor(color): number[] {
     let pcolor;
 
     if (typeof color === "string") {
@@ -185,14 +158,15 @@ export function parseColor(color) {
     return pcolor;
 }
 
-export function interpColor(colors, steps = 2, endPoints = true, interpFunc = lerp) {
+function interpColor(colors, steps = 2, endPoints = true, interpFunc = lerp) {
     colors = colors.map(function (color) {
         return parseColor(color);
     });
 
-    let interpColor = function (t, color1, color2) {
-        return new Array(color1.length).fill().map(function (_, index) {
-            let value = interpFunc(t, color1[index], color2[index]);
+    const interpColor = function (t: number, color1, color2) {
+        return new Array(color1.length).fill(0).map(function (_, index) {
+            const value = interpFunc(t, color1[index], color2[index]);
+
             if (index < 3) {
                 return clamp(Math.ceil(value), 0, 255);
             } else {
@@ -223,7 +197,16 @@ export function interpColor(colors, steps = 2, endPoints = true, interpFunc = le
     return [].concat.apply([], sections);
 }
 
-export class Color {
+class Color {
+    _colorString: string;
+    _rgba: number[];
+    _hsla: number[];
+    _hex: string;
+    _hue: number;
+    _saturation: number;
+    _lightness: number;
+    _opacity: number;
+
     constructor(colorString) {
         this.colorString = colorString;
     }
