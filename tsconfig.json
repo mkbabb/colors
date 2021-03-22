@@ -11,6 +11,6 @@
         "strict": false,
     },
     "include": [
-        "src/animation.ts",
+        "src/colors.ts",
     ],
 }
